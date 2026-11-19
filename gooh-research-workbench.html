@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Gooh旅记 旅行产品调研问卷工作台</title>
+  <style>
+    :root {
+      --ink: #18211f;
+      --muted: #66716e;
+      --line: #dfe6e3;
+      --soft: #f4f7f6;
+      --paper: #ffffff;
+      --brand: #0d745e;
+      --brand-dark: #095947;
+      --accent: #e99b35;
+      --danger: #c43d3d;
+      --shadow: 0 12px 36px rgba(20, 50, 43, .08);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eef3f1;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.55;
+      letter-spacing: 0;
+    }
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, textarea:focus-visible, summary:focus-visible {
+      outline: 3px solid rgba(13, 116, 94, .22);
+      outline-offset: 2px;
+    }
+
+    .topbar {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      border-bottom: 1px solid rgba(210, 222, 218, .9);
+      background: rgba(255, 255, 255, .94);
+      backdrop-filter: blur(14px);
+    }
+    .topbar-inner {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 72px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: max-content; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center;
+      border-radius: 50% 50% 50% 12%; transform: rotate(-12deg);
+      color: #fff; background: var(--brand); font-weight: 800;
+    }
+    .brand-mark span { transform: rotate(12deg); }
+    .brand-name { font-size: 18px; font-weight: 800; }
+    .brand-sub { display: block; color: var(--muted); font-size: 11px; font-weight: 500; }
+    .tabs { display: flex; align-self: stretch; gap: 6px; margin-left: auto; }
+    .tab {
+      position: relative; border: 0; padding: 0 16px; color: var(--muted); background: transparent; font-weight: 700;
+      white-space: nowrap;
+    }
+    .tab[aria-selected="true"] { color: var(--brand); }
+    .tab[aria-selected="true"]::after {
+      content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px; background: var(--brand);
+    }
+    .copy-all, .primary, .secondary, .copy-one {
+      border: 1px solid transparent; border-radius: 6px; min-height: 40px; padding: 8px 15px; font-weight: 750;
+      white-space: nowrap; transition: .18s ease;
+    }
+    .copy-all, .primary { color: #fff; background: var(--brand); }
+    .copy-all:hover, .primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
+    .secondary, .copy-one { color: var(--brand); border-color: #bcd4cd; background: #fff; }
+    .secondary:hover, .copy-one:hover { border-color: var(--brand); background: #f0f8f5; }
+
+    main { width: min(1180px, calc(100% - 32px)); margin: 28px auto 64px; }
+    [hidden] { display: none !important; }
+    .workspace-note {
+      margin-bottom: 22px; padding: 13px 16px; border-left: 3px solid var(--accent); color: #5b625f; background: #fff;
+      box-shadow: 0 4px 16px rgba(20, 50, 43, .04); font-size: 14px;
+    }
+    .preview-shell { width: min(680px, 100%); margin: 0 auto; }
+    .survey-hero {
+      position: relative; overflow: hidden; padding: 32px 30px 28px; color: #fff; background: #116b59;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .survey-hero::before, .survey-hero::after {
+      content: ""; position: absolute; pointer-events: none; opacity: .16;
+      border: 1px solid #fff; border-radius: 50%;
+    }
+    .survey-hero::before { width: 210px; height: 90px; right: -45px; top: -18px; transform: rotate(-10deg); }
+    .survey-hero::after { width: 150px; height: 70px; right: 35px; bottom: -42px; transform: rotate(17deg); }
+    .eyebrow { margin: 0 0 8px; color: #cfe9e1; font-size: 12px; font-weight: 800; }
+    h1 { margin: 0; font-size: clamp(25px, 6vw, 34px); line-height: 1.2; letter-spacing: 0; }
+    .intro { max-width: 560px; margin: 13px 0 18px; color: #e8f3ef; font-size: 15px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .meta span { padding: 4px 9px; border: 1px solid rgba(255,255,255,.28); border-radius: 999px; font-size: 12px; }
+    .progress-wrap {
+      position: sticky; top: 72px; z-index: 10; padding: 13px 22px; border: 1px solid var(--line); border-top: 0; background: rgba(255,255,255,.96);
+    }
+    .progress-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 7px; font-size: 12px; color: var(--muted); }
+    .progress-track { height: 5px; overflow: hidden; border-radius: 4px; background: #e6ece9; }
+    .progress-fill { width: 0; height: 100%; background: var(--accent); transition: width .28s ease; }
+    .question-list { padding: 8px 22px 24px; border: 1px solid var(--line); border-top: 0; background: #fff; box-shadow: var(--shadow); }
+    .section-label { margin: 30px 0 2px; color: var(--brand); font-size: 13px; font-weight: 800; }
+    .question { scroll-margin-top: 136px; padding: 22px 0; border-bottom: 1px solid #edf1ef; }
+    .question.error { margin: 8px -10px 0; padding: 20px 10px; border: 1px solid #f0bcbc; border-radius: var(--radius); background: #fffafa; }
+    .q-head { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 7px; }
+    .q-number { flex: 0 0 auto; color: var(--brand); font-weight: 850; }
+    .q-title { margin: 0; font-size: 16px; font-weight: 760; }
+    .required { color: var(--danger); }
+    .q-hint { margin: 0 0 13px 31px; color: var(--muted); font-size: 12px; }
+    .error-text { display: none; margin: 8px 0 0 31px; color: var(--danger); font-size: 12px; font-weight: 700; }
+    .question.error .error-text { display: block; }
+    .options { display: grid; gap: 9px; margin-left: 31px; }
+    .option {
+      display: flex; align-items: flex-start; gap: 10px; min-height: 46px; padding: 11px 12px; border: 1px solid var(--line);
+      border-radius: 6px; background: #fff; cursor: pointer; transition: .15s ease;
+    }
+    .option:hover { border-color: #9fc2b8; background: #f8fbfa; }
+    .option:has(input:checked) { border-color: var(--brand); background: #f0f8f5; box-shadow: inset 3px 0 var(--brand); }
+    .option input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--brand); }
+    .option-text { font-size: 14px; }
+    .other-wrap { margin: 10px 0 0 31px; }
+    .other-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
+    .other-input {
+      width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px;
+      color: var(--ink); background: #fbfcfc;
+    }
+    .other-input:focus { border-color: var(--brand); background: #fff; }
+    textarea {
+      width: calc(100% - 31px); min-height: 108px; margin-left: 31px; resize: vertical; padding: 12px 13px;
+      border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #fbfcfc;
+    }
+    textarea:focus { border-color: var(--brand); background: #fff; }
+    .char-count { margin: 5px 0 0 31px; color: var(--muted); text-align: right; font-size: 11px; }
+    .submit-area { padding: 26px 0 6px; text-align: center; }
+    .submit-area .primary { width: min(320px, 100%); min-height: 48px; }
+    .privacy { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .complete { padding: 52px 28px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; text-align: center; box-shadow: var(--shadow); }
+    .complete-mark { width: 58px; height: 58px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--brand); font-size: 28px; }
+    .complete h2 { margin: 0 0 10px; font-size: 24px; }
+    .complete p { margin: 0 auto 24px; max-width: 420px; color: var(--muted); }
+
+    .guide-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    .guide-head h2 { margin: 0 0 4px; font-size: 25px; }
+    .guide-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .guide-tools { display: flex; gap: 8px; }
+    .guide-list { display: grid; gap: 12px; }
+    details.guide-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: 0 4px 16px rgba(20, 50, 43, .04); }
+    details.guide-card[open] { border-color: #b9d1ca; }
+    summary {
+      min-height: 66px; padding: 15px 18px; display: flex; align-items: center; gap: 12px; list-style: none; cursor: pointer;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .guide-index { color: var(--brand); font-size: 13px; font-weight: 850; }
+    .guide-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 760; }
+    .chevron { color: var(--muted); transition: transform .2s ease; }
+    details[open] .chevron { transform: rotate(180deg); }
+    .copy-one { flex: 0 0 auto; min-height: 34px; padding: 5px 10px; font-size: 12px; }
+    .guide-content { padding: 4px 18px 20px; border-top: 1px solid #edf1ef; }
+    .guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+    .guide-block h3 { margin: 15px 0 6px; color: #49534f; font-size: 13px; }
+    .guide-block p, .guide-block li { color: #5f6965; font-size: 13px; }
+    .guide-block p { margin: 0; }
+    .logic { grid-column: 1 / -1; }
+    .logic ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+    .logic strong { color: var(--ink); }
+    .toast {
+      position: fixed; z-index: 99; left: 50%; bottom: 28px; transform: translate(-50%, 14px); opacity: 0;
+      min-width: 220px; max-width: calc(100% - 32px); padding: 11px 16px; border-radius: 6px; color: #fff; background: #26312e;
+      text-align: center; font-size: 13px; pointer-events: none; transition: .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 760px) {
+      .topbar-inner { width: 100%; min-height: 62px; padding: 0 12px; gap: 6px; }
+      .brand-sub { display: none; }
+      .brand-mark { width: 32px; height: 32px; }
+      .brand-name { font-size: 16px; }
+      .tabs { gap: 0; }
+      .tab { flex: 0 0 auto; padding: 0 9px; font-size: 12px; }
+      .tab[aria-selected="true"]::after { left: 10px; right: 10px; }
+      .copy-all { flex: 0 0 auto; min-height: 36px; padding: 6px 9px; font-size: 12px; }
+      main { width: 100%; margin: 0 auto 36px; }
+      .workspace-note { display: none; }
+      .survey-hero { border-radius: 0; padding: 28px 20px 24px; }
+      .progress-wrap { top: 62px; padding: 12px 16px; }
+      .question-list { padding: 2px 16px 20px; border-right: 0; border-left: 0; box-shadow: none; }
+      .section-label { margin-top: 26px; }
+      .question { scroll-margin-top: 118px; }
+      .q-hint, .options, .other-wrap, .error-text, textarea, .char-count { margin-left: 0; }
+      textarea { width: 100%; }
+      .guide-head { padding: 22px 16px 8px; align-items: flex-start; flex-direction: column; }
+      .guide-tools { width: 100%; }
+      .guide-tools button { flex: 1; }
+      .guide-list { padding: 0 12px; }
+      summary { padding: 13px 14px; gap: 8px; }
+      .copy-one { padding: 5px 8px; }
+      .guide-grid { grid-template-columns: 1fr; gap: 4px; }
+      .logic { grid-column: auto; }
+    }
+
+    @media (max-width: 420px) {
+      .brand-name { display: none; }
+      .tabs { margin-left: 0; }
+      .tab { padding: 0 8px; }
+      .copy-all { margin-left: auto; }
+      .guide-title { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="Gooh旅记 问卷工作台">
+        <div class="brand-mark" aria-hidden="true"><span>G</span></div>
+        <div><span class="brand-name">Gooh旅记</span><span class="brand-sub">旅行产品调研工作台</span></div>
+      </div>
+      <nav class="tabs" aria-label="工作台模块" role="tablist">
+        <button class="tab" id="tab-preview" role="tab" aria-selected="true" aria-controls="panel-preview">问卷预览</button>
+        <button class="tab" id="tab-guide" role="tab" aria-selected="false" aria-controls="panel-guide">题目说明</button>
+      </nav>
+      <button class="copy-all" type="button">复制完整问卷</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="workspace-note">当前为内部预览工作台。对外发布时，仅需使用“问卷预览”中的填写内容；“题目说明”不会出现在用户问卷中。</div>
+
+    <section id="panel-preview" role="tabpanel" aria-labelledby="tab-preview">
+      <div class="preview-shell">
+        <div id="survey-view">
+          <header class="survey-hero">
+            <p class="eyebrow">GOOH旅记 USER RESEARCH</p>
+            <h1 id="survey-title"></h1>
+            <p class="intro" id="survey-intro"></p>
+            <div class="meta"><span>约 3 分钟</span><span>共 12 题</span><span>匿名填写</span></div>
+          </header>
+          <div class="progress-wrap" aria-live="polite">
+            <div class="progress-row"><span>填写进度</span><strong id="progress-text">0 / 10 道必答题</strong></div>
+            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          </div>
+          <form class="question-list" id="survey-form" novalidate></form>
+        </div>
+        <section class="complete" id="complete-view" hidden>
+          <div class="complete-mark">✓</div>
+          <h2>感谢你的认真分享</h2>
+          <p>你的反馈会帮助 Gooh旅记更好地理解真实的旅行协作场景，并持续改进产品体验。</p>
+          <button class="secondary" id="reset-survey" type="button">重新体验问卷</button>
+        </section>
+      </div>
+    </section>
+
+    <section id="panel-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+      <div class="guide-head">
+        <div><h2>题目说明</h2><p>供产品与运营讨论使用，与用户填写页面完全分离。</p></div>
+        <div class="guide-tools"><button class="secondary" id="expand-all" type="button">全部展开</button><button class="secondary" id="collapse-all" type="button">全部收起</button></div>
+      </div>
+      <div class="guide-list" id="guide-list"></div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const survey = {
+      title: "一起聊聊你的旅行方式",
+      intro: "我们想了解你的旅行规划习惯、多人协作体验，以及你对 Gooh旅记旅行群聊的真实期待。问卷匿名，无论是否用过 Gooh旅记都欢迎填写。",
+      sections: [
+        { title: "你的旅行规划习惯", ids: [1, 2, 3] },
+        { title: "关于 Gooh旅记", ids: [4] },
+        { title: "关于旅行协作", ids: [5, 6] },
+        { title: "关于旅行群聊", ids: [7, 8, 9, 10] },
+        { title: "开放反馈", ids: [11, 12] }
+      ],
+      questions: [
+        {
+          id: 1, title: "你平时使用旅行规划类 App 的频率是？", type: "single", required: true,
+          options: ["经常使用，大多数旅行都会用", "偶尔使用，只在部分旅行中会用", "以前使用过，现在主要改用其他方式（如备忘录或表格）", "从未使用过"],
+          purpose: "仅从使用频率这一维度区分旅行规划工具的高频、低频、流失和从未使用人群，避免混入使用次数或品类认知等其他标准。",
+          typeReason: "采用单选，因为四个选项描述的是用户当前最接近的一种使用状态，彼此应当互斥；允许多选会使频率分层失去意义。",
+          logic: ["经常使用，大多数旅行都会用：识别稳定依赖旅行规划工具的高频用户。", "偶尔使用，只在部分旅行中会用：识别由行程复杂度或特定场景触发的低频用户。", "以前使用过，现在主要改用其他方式（如备忘录或表格）：识别已经离开旅行规划类 App、转向通用工具的人群。", "从未使用过：识别尚未采用旅行规划类 App 的人群。"],
+          analysis: "形成清晰的使用频率分层，并与 Q2 核心任务、Q4 Gooh旅记使用状态和 Q10 邀请意愿交叉分析。",
+          value: "帮助判断社媒预热应面向成熟工具用户强调差异化，还是面向未使用者解释旅行规划工具的基础价值。"
+        },
+        {
+          id: 2, title: "你最希望旅行规划类 App 帮你解决哪些事情？", type: "multi", max: 3, required: true,
+          options: ["参考他人的攻略或行程，获得旅行灵感", "收集旅行攻略和地点，需要时能快速找到并使用", "把想去的地点快速安排成自己的行程", "管理旅行前、中、后的其他事务（如行李、账单和旅行记录）", "和同行伙伴共同讨论、决定并同步计划", "暂时没有使用这类 App 的需要", "其他"],
+          exclusive: ["暂时没有使用这类 App 的需要"],
+          purpose: "从品类视角识别用户最重要的旅行规划任务，不把答案限制在 Gooh旅记的现有功能上。",
+          typeReason: "采用多选，因为用户通常同时存在多种旅行规划需求；最多选 3 项用于迫使用户表达核心优先级，避免把所有看起来有用的选项全部勾选，也控制整体填写时间。",
+          logic: ["参考他人的攻略或行程，获得旅行灵感：识别规划开始前的内容参考需求。", "收集旅行攻略和地点，需要时能快速找到并使用：识别外部旅行信息的集中收集、检索和复用需求。", "把想去的地点快速安排成自己的行程：识别将已收集内容快速落地为可执行计划的需求。", "管理旅行前、中、后的其他事务（如行李、账单和旅行记录）：识别行程规划之外、覆盖完整旅行周期的事务管理需求。", "和同行伙伴共同讨论、决定并同步计划：识别多人共同规划和信息同步需求。", "暂时没有使用这类 App 的需要：识别当前品类需求较弱的人群，并与其他选项互斥。", "其他：承接预设之外的核心任务。"],
+          analysis: "比较灵感获取、信息收集、快速排程、全周期事务管理和多人协作五类核心需求，并分析常见组合。",
+          value: "指导 Gooh旅记的产品定位、内容与工具能力优先级，以及社媒传播中应强调的用户价值。"
+        },
+        {
+          id: 3, title: "多人旅行时，你通常是哪种角色？", type: "single", required: true,
+          options: ["主要负责规划和组织，也会推动大家做决定", "会和同行伙伴一起规划、共同决定", "主要提供想法和意见，不负责完整规划", "通常跟随大家的安排", "我主要独自旅行，很少参与多人旅行", "其他"],
+          purpose: "识别多人旅行中的组织者、共同参与者和跟随者，因为不同角色对协作与群聊的需求差异明显。",
+          typeReason: "采用单选，因为题目需要识别用户在多人旅行中最主要、最常见的角色；角色偶尔可能变化，但要求选择最接近的一项更利于形成清晰分群。",
+          logic: ["主要负责规划和组织，也会推动大家做决定：识别最可能创建计划和邀请群成员的核心组织者。", "会和同行伙伴一起规划、共同决定：识别协作功能的直接参与者。", "主要提供想法和意见，不负责完整规划：识别轻量参与和反馈需求。", "通常跟随大家的安排：识别以接收信息、查看变更为主的成员。", "我主要独自旅行，很少参与多人旅行：识别客观上协作需求较低的人群。", "其他：承接特殊的多人旅行角色。"],
+          analysis: "按旅行角色比较 Q6 协作问题、Q8 群聊任务和 Q10 邀请意愿，识别创建者与参与者的不同需求。",
+          value: "指导群聊创建、邀请、成员参与和信息同步流程分别服务哪些角色。"
+        },
+        {
+          id: 4, title: "你目前使用 Gooh旅记的情况是？", type: "single", required: true,
+          options: ["经常使用", "偶尔使用", "以前使用过，现在已经不再使用", "从未使用过"],
+          purpose: "识别回答者与 Gooh旅记的实际使用关系，为现有产品反馈、协作功能认知和群聊意愿提供基础分层。",
+          typeReason: "采用单选，因为四个选项代表用户当前最接近的一种产品使用状态，彼此互斥；单选可以形成清晰的现有用户、流失用户和非用户分层。",
+          logic: ["经常使用：识别当前高频 Gooh旅记用户。", "偶尔使用：识别当前仍在使用、但使用频率较低的用户。", "以前使用过，现在已经不再使用：识别 Gooh旅记流失用户。", "从未使用过：识别没有 Gooh旅记使用经验的人群。"],
+          analysis: "比较当前使用率、流失率和非用户占比，并与 Q1 品类使用频率、Q5 协作功能状态和 Q10 群聊邀请意愿交叉分析。",
+          value: "为产品意见和群聊需求提供必要的用户身份分层，避免把现有用户、流失用户和非用户的答案混在一起。"
+        },
+        {
+          id: 5, title: "你使用过 Gooh旅记的旅行协作功能吗？", type: "single", required: true,
+          options: ["只要是多人旅行，基本都会使用", "偶尔使用，只在部分多人旅行中会用", "使用 Gooh旅记，也知道这个功能，但还没有用过", "使用 Gooh旅记，但此前不知道有这个功能", "目前不需要使用协作功能", "没有使用过 Gooh旅记，无法评价"],
+          purpose: "用清晰且互斥的状态识别协作功能的使用频率、认知未转化、功能未知、当前无需求和产品非用户。",
+          typeReason: "采用单选，因为每位用户只应归入一种最符合当前情况的协作使用状态；这些状态用于计算使用率和认知转化率，不能重复计数。",
+          logic: ["只要是多人旅行，基本都会使用：识别多人场景下稳定使用协作功能的核心用户。", "偶尔使用，只在部分多人旅行中会用：识别仅在特定旅行中被触发的低频用户。", "使用 Gooh旅记，也知道这个功能，但还没有用过：识别有功能认知但尚未转化的产品用户。", "使用 Gooh旅记，但此前不知道有这个功能：识别现有用户中的功能曝光不足。", "目前不需要使用协作功能：识别当前无协作需求的人群，不将原因限定为独自旅行。", "没有使用过 Gooh旅记，无法评价：为产品非用户提供准确出口，避免被迫评价协作功能。"],
+          analysis: "计算协作功能的稳定使用率、偶尔使用率、认知未转化率和未知率，并按 Q3 旅行角色、Q4 产品使用状态比较。",
+          value: "判断协作方向当前更需要提升功能曝光、首次使用转化，还是强化多人场景下的持续价值。"
+        },
+        {
+          id: 6, title: "和同行伙伴一起规划旅行时，哪些事情仍然不够方便？", type: "multi", max: 3, required: true,
+          options: ["讨论分散在不同聊天或工具里，重要信息难以查找", "每个人的想法不同，不容易统一决定", "行程发生变化时，很难让所有人及时了解", "谁负责什么、准备到哪一步不够清楚", "旅行费用的记录、分摊或结算比较麻烦", "目前没有明显不方便", "我很少参与多人旅行，无法评价", "其他"],
+          exclusive: ["目前没有明显不方便", "我很少参与多人旅行，无法评价"],
+          purpose: "识别多人旅行从讨论、决策到执行过程中最普遍、且可以落到产品方向上的协作问题。",
+          typeReason: "采用多选，因为多人旅行中可能同时存在沟通、决策、同步、分工和费用问题；最多选 3 项用于识别最主要的协作阻力，避免次要问题稀释优先级。",
+          logic: ["讨论分散在不同聊天或工具里，重要信息难以查找：识别沟通内容汇总、沉淀和检索问题。", "每个人的想法不同，不容易统一决定：识别意见协调和共同决策问题。", "行程发生变化时，很难让所有人及时了解：识别计划变更同步问题。", "谁负责什么、准备到哪一步不够清楚：识别责任分配和准备进度问题。", "旅行费用的记录、分摊或结算比较麻烦：识别费用协作问题。", "目前没有明显不方便：为协作体验已经满足需求的用户提供出口，并与具体问题互斥。", "我很少参与多人旅行，无法评价：为缺少相关经历的用户提供出口，并与其他选项互斥。", "其他：收集未覆盖的多人旅行协作问题。"],
+          analysis: "统计五类协作问题的选择率和组合，并按 Q3 旅行角色、Q5 协作使用状态分层比较。",
+          value: "分别对应信息沉淀、共同决策、变更同步、任务进度和费用协作五个产品方向，也能检验旅行群聊最需要解决的问题。"
+        },
+        {
+          id: 7, title: "如果只能选一个，你认为旅行群聊相对普通微信群最重要的区别是什么？", type: "single", required: true,
+          options: ["讨论结果能直接转成行程、地点等计划内容", "行程调整后，变化能自动同步到群里", "可以围绕具体日期、地点或旅行事项单独讨论", "重要的旅行信息能被整理、固定和快速查找", "每次旅行都有独立、方便长期回看的沟通空间", "不需要明显区别，普通微信群已经够用", "其他"],
+          purpose: "验证旅行专属群聊相对通用聊天工具必须成立的核心差异，而不是泛泛询问功能喜好。",
+          typeReason: "采用单选，因为这道题用于确定旅行群聊最核心的产品定位和传播主张，需要用户在多个合理价值中做出优先选择；具体的多场景需求已由 Q8 多选题承接。",
+          logic: ["讨论结果能直接转成行程、地点等计划内容：验证从聊天到计划的转化价值。", "行程调整后，变化能自动同步到群里：验证从计划到群聊的同步价值，与上一选项方向明确区分。", "可以围绕具体日期、地点或旅行事项单独讨论：验证讨论内容与旅行上下文绑定的价值。", "重要的旅行信息能被整理、固定和快速查找：验证信息沉淀与检索价值。", "每次旅行都有独立、方便长期回看的沟通空间：验证旅行专属场域和长期记录价值。", "不需要明显区别，普通微信群已经够用：识别对专属群聊差异化价值不敏感的人群。", "其他：捕捉新的群聊定位认知。"],
+          analysis: "比较不同定位的首选率，并与 Q9 顾虑和 Q10 邀请意愿交叉，判断哪类价值最能驱动采用。",
+          value: "指导群聊的核心产品叙事、社媒预热重点和首版最应突出的差异化体验。"
+        },
+        {
+          id: 8, title: "你最希望在旅行群聊里讨论和处理哪些事情？", type: "multi", max: 3, required: true,
+          options: ["讨论目的地、攻略和想去的地点", "一起确定每日行程、路线和交通", "沟通预订、集合安排和临时变化", "分配并确认旅行前的准备事项", "讨论旅行费用的记录、分摊和结算", "分享照片、见闻和对地点的评价", "进行与旅行无关的日常闲聊", "暂时没有特别想做的事情", "其他"],
+          exclusive: ["暂时没有特别想做的事情"],
+          purpose: "以同一层级的讨论主题识别旅行群聊中优先级最高的场景，避免混用大类任务和具体功能操作。",
+          typeReason: "采用多选，因为同一个旅行群聊会承载多个讨论主题；最多选 3 项用于确定首版最重要的使用场景，避免所有主题都获得相近的表面支持率。",
+          logic: ["讨论目的地、攻略和想去的地点：识别旅行灵感与目的地讨论场景。", "一起确定每日行程、路线和交通：识别详细行程共同决策场景。", "沟通预订、集合安排和临时变化：识别旅行执行阶段的即时协调场景。", "分配并确认旅行前的准备事项：识别证件、行李等准备任务的分工与进度确认场景。", "讨论旅行费用的记录、分摊和结算：识别费用协作场景。", "分享照片、见闻和对地点的评价：识别旅行中及旅行后的内容分享与反馈场景。", "进行与旅行无关的日常闲聊：识别用户是否期待旅行群聊同时承担普通社交沟通。", "暂时没有特别想做的事情：识别当前无明确群聊需求的人群，并与其他选项互斥。", "其他：承接未覆盖的讨论主题。"],
+          analysis: "按旅行规划、准备、执行、费用、分享和日常社交六类主题比较需求，并结合 Q3 旅行角色分析差异。",
+          value: "指导群聊首版的讨论入口、计划联动和旅行事务能力建设顺序。"
+        },
+        {
+          id: 9, title: "使用旅行群聊时，你最可能担心什么？", type: "multi", max: 2, required: true,
+          options: ["同行伙伴不愿意下载或加入 Gooh旅记", "微信和旅行群聊同时使用，信息反而更分散", "群聊讨论和旅行计划不能方便联动，仍要重复整理", "多人修改计划后，很难确认最新内容和具体变化", "重要的旅行结论仍然会被聊天消息淹没", "系统同步和行程更新消息太多，影响正常讨论", "目前没有明显顾虑", "其他"],
+          exclusive: ["目前没有明显顾虑"],
+          purpose: "聚焦旅行群聊在邀请、跨工具沟通、计划联动和多人修改方面的特有风险。",
+          typeReason: "采用多选，因为用户可能同时存在多种采用顾虑；最多选 2 项是为了识别真正会阻碍使用的关键风险，而不是收集所有理论上可能发生的问题。",
+          logic: ["同行伙伴不愿意下载或加入 Gooh旅记：识别旅行群聊依赖同行者加入的启动门槛。", "微信和旅行群聊同时使用，信息反而更分散：识别双渠道并存导致的旅行信息割裂。", "群聊讨论和旅行计划不能方便联动，仍要重复整理：识别群聊差异化价值无法成立的风险。", "多人修改计划后，很难确认最新内容和具体变化：识别多人编辑、版本确认和变更追踪风险。", "重要的旅行结论仍然会被聊天消息淹没：识别关键决策沉淀问题。", "系统同步和行程更新消息太多，影响正常讨论：识别计划自动消息带来的特有干扰。", "目前没有明显顾虑：识别高接受度人群，并与其他顾虑互斥。", "其他：捕捉未预设的旅行群聊风险。"],
+          analysis: "比较各顾虑占比，并与 Q7 定位偏好、Q10 邀请意愿交叉，识别真正影响转化的阻力。",
+          value: "指导邀请机制、跨工具使用策略、计划联动、版本管理、信息沉淀和系统消息设计。"
+        },
+        {
+          id: 10, title: "如果旅行中可以使用专属群聊，你愿意邀请同行伙伴一起使用吗？", type: "single", required: true,
+          options: ["会，我愿意邀请所有同行伙伴一起使用", "会，但只邀请需要参与规划的同行伙伴", "可能会，我想先确认旅行群聊和协作体验确实有用", "可能不会，我更习惯在微信等现有工具中沟通", "不会，我暂时不考虑使用旅行群聊"],
+          purpose: "不绑定具体产品或加入流程，衡量用户邀请同行伙伴共同使用旅行群聊的范围和意愿。",
+          typeReason: "采用单选，因为选项表示从全员邀请、选择性邀请到不邀请的一种最接近的行为意愿；单选便于形成清晰的邀请转化漏斗。",
+          logic: ["会，我愿意邀请所有同行伙伴一起使用：识别愿意推动全员进入旅行群聊的高意愿用户。", "会，但只邀请需要参与规划的同行伙伴：识别仅希望核心规划成员进入群聊的选择性邀请者。", "可能会，我想先确认旅行群聊和协作体验确实有用：识别需要先验证产品价值的谨慎采用者。", "可能不会，我更习惯在微信等现有工具中沟通：识别受现有沟通习惯影响的低意愿用户。", "不会，我暂时不考虑使用旅行群聊：识别当前明确没有使用和邀请意愿的人群。"],
+          analysis: "建立邀请意愿分层，并与 Q3 旅行角色、Q7 核心价值和 Q9 顾虑交叉，找出高意愿人群及关键转化条件。",
+          value: "估算群聊预热与首批体验用户规模，制定种子用户招募、价值展示和邀请传播策略。"
+        },
+        {
+          id: 11, title: "如果你使用过 Gooh旅记，目前最希望它改进什么？", type: "text", maxLength: 240, required: false,
+          placeholder: "可以写下最影响你使用体验的一点；没有使用过或暂时没有建议可以跳过……",
+          purpose: "不预设产品问题或功能范围，让用户用自己的语言反馈 Gooh旅记当前最需要改进的体验。",
+          typeReason: "采用开放题，因为预设功能选项容易与真实产品体验不匹配并限制反馈范围；设置为选填，是为了让未使用过或没有明确意见的用户可以跳过。",
+          logic: ["开放填写：避免选项与实际产品能力不匹配或限制用户答案；要求只写最重要的一点，便于后续归类和判断优先级。", "选填：未使用过 Gooh旅记或暂时没有明确意见的用户可以直接跳过。"],
+          analysis: "将回答按功能问题、操作体验、稳定性、理解成本、价值不足和其他主题进行开放编码，再统计高频问题。",
+          value: "形成不受预设选项限制的现有产品问题池，为体验优化和后续定向访谈提供素材。"
+        },
+        {
+          id: 12, title: "对 Gooh旅记未来的旅行协作或旅行群聊，你还有什么期待？", type: "text", maxLength: 240, required: false,
+          placeholder: "欢迎补充你理想中的协作方式，或问卷没有提到的旅行群聊需求……",
+          purpose: "专门承接未来的协作与群聊期待，与 Q11 的现有产品改进反馈明确分工。",
+          typeReason: "采用开放题，因为未来期待可能超出结构化选项覆盖范围；设置为选填并放在最后，减少填写负担和开放题造成的中途流失。",
+          logic: ["开放填写：允许用户描述理想协作方式、群聊能力和结构化选项未覆盖的需求；选填可降低完成压力。"],
+          analysis: "按协作方式、群聊联动、成员参与、旅行阶段和其他主题编码，统计高频机会点并保留典型原话。",
+          value: "补充群聊量化题未覆盖的长期机会，为后续产品探索、用户访谈和社媒预热内容提供素材。"
+        }
+      ]
+    };
+
+    const answers = {};
+    const otherAnswers = {};
+    const requiredQuestions = survey.questions.filter(q => q.required);
+    const form = document.getElementById("survey-form");
+    const guideList = document.getElementById("guide-list");
+    const toast = document.getElementById("toast");
+
+    document.getElementById("survey-title").textContent = survey.title;
+    document.getElementById("survey-intro").textContent = survey.intro;
+
+    function typeLabel(q) {
+      if (q.type === "single") return "单选 · 必答";
+      if (q.type === "multi") return `多选，最多选 ${q.max} 项 · 必答`;
+      return `开放填写 · ${q.required ? "必答" : "选填"}`;
+    }
+
+    function renderSurvey() {
+      let html = "";
+      survey.sections.forEach(section => {
+        html += `<div class="section-label">${section.title}</div>`;
+        section.ids.forEach(id => {
+          const q = survey.questions.find(item => item.id === id);
+          html += `<section class="question" id="question-${q.id}" data-id="${q.id}">
+            <div class="q-head"><span class="q-number">Q${q.id}</span><h2 class="q-title">${q.title} ${q.required ? '<span class="required" aria-label="必答">*</span>' : ""}</h2></div>
+            <p class="q-hint">${typeLabel(q)}</p>`;
+          if (q.type === "text") {
+            html += `<textarea name="q${q.id}" maxlength="${q.maxLength}" placeholder="${q.placeholder}" aria-label="Q${q.id} ${q.title}"></textarea><div class="char-count"><span>0</span> / ${q.maxLength}</div>`;
+          } else {
+            html += `<div class="options">${q.options.map((option, index) => `<label class="option"><input type="${q.type === "single" ? "radio" : "checkbox"}" name="q${q.id}" value="${option}"><span class="option-text">${option}</span></label>`).join("")}</div>`;
+            if (q.options.includes("其他")) {
+              html += `<div class="other-wrap" hidden><label class="other-label" for="other-q${q.id}">其他内容（选填）</label><input class="other-input" id="other-q${q.id}" data-question-id="${q.id}" type="text" maxlength="80" placeholder="可补充具体内容"></div>`;
+            }
+          }
+          html += `<p class="error-text">请完成这道必答题</p></section>`;
+        });
+      });
+      html += `<div class="submit-area"><button class="primary" type="submit">提交问卷</button><p class="privacy">本页面仅用于问卷体验，不会上传或保存你的答案。</p></div>`;
+      form.innerHTML = html;
+    }
+
+    function renderGuide() {
+      guideList.innerHTML = survey.questions.map(q => `<details class="guide-card">
+        <summary>
+          <span class="guide-index">Q${q.id}</span>
+          <span class="guide-title">${q.title}</span>
+          <button class="copy-one" type="button" data-copy-id="${q.id}">复制题目</button>
+          <span class="chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="guide-content"><div class="guide-grid">
+          <div class="guide-block"><h3>调研目的</h3><p>${q.purpose}</p></div>
+          <div class="guide-block"><h3>数据分析方向</h3><p>${q.analysis}</p></div>
+          <div class="guide-block logic"><h3>选项设计逻辑</h3><ol>${q.logic.map(item => { const parts = item.split("："); return `<li><strong>${parts.shift()}</strong>${parts.length ? `：${parts.join("：")}` : ""}</li>`; }).join("")}</ol></div>
+          <div class="guide-block"><h3>产品决策价值</h3><p>${q.value}</p></div>
+          <div class="guide-block"><h3>题型与选择限制</h3><p>${typeLabel(q)}${q.type === "text" ? `，最多 ${q.maxLength} 字` : ""}。${q.typeReason}</p></div>
+        </div></div>
+      </details>`).join("");
+    }
+
+    function updateProgress() {
+      const done = requiredQuestions.filter(q => {
+        const value = answers[q.id];
+        return Array.isArray(value) ? value.length > 0 : Boolean(value && String(value).trim());
+      }).length;
+      document.getElementById("progress-text").textContent = `${done} / ${requiredQuestions.length} 道必答题`;
+      document.getElementById("progress-fill").style.width = `${(done / requiredQuestions.length) * 100}%`;
+    }
+
+    function handleChoice(input) {
+      const id = Number(input.name.slice(1));
+      const q = survey.questions.find(item => item.id === id);
+      const section = document.getElementById(`question-${id}`);
+      if (q.type === "single") {
+        answers[id] = input.value;
+      } else {
+        const all = [...section.querySelectorAll('input[type="checkbox"]')];
+        const exclusive = q.exclusive || [];
+        if (input.checked && exclusive.includes(input.value)) {
+          all.forEach(item => { if (item !== input) item.checked = false; });
+        } else if (input.checked) {
+          all.forEach(item => { if (exclusive.includes(item.value)) item.checked = false; });
+          const checked = all.filter(item => item.checked);
+          if (checked.length > q.max) {
+            input.checked = false;
+            showToast(`这道题最多选择 ${q.max} 项`);
+          }
+        }
+        answers[id] = all.filter(item => item.checked).map(item => item.value);
+      }
+      const otherWrap = section.querySelector(".other-wrap");
+      if (otherWrap) {
+        const otherSelected = [...section.querySelectorAll('input[type="radio"], input[type="checkbox"]')]
+          .some(item => item.value === "其他" && item.checked);
+        otherWrap.hidden = !otherSelected;
+        if (!otherSelected) {
+          otherWrap.querySelector(".other-input").value = "";
+          delete otherAnswers[id];
+        }
+      }
+      section.classList.remove("error");
+      updateProgress();
+    }
+
+    function questionText(q) {
+      let text = `Q${q.id}. ${q.title}\n[${typeLabel(q)}]`;
+      if (q.options) text += "\n" + q.options.map((option, i) => `${i + 1}. ${option}`).join("\n");
+      else text += `\n填写：____________________（最多 ${q.maxLength} 字）`;
+      return text;
+    }
+
+    function fullSurveyText() {
+      return `${survey.title}\n\n${survey.intro}\n预计填写时间：约 3 分钟\n\n` + survey.sections.map(section => {
+        const questions = section.ids.map(id => questionText(survey.questions.find(q => q.id === id))).join("\n\n");
+        return `【${section.title}】\n\n${questions}`;
+      }).join("\n\n");
+    }
+
+    async function copyText(text, success) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+        else {
+          const area = document.createElement("textarea");
+          area.value = text; area.style.position = "fixed"; area.style.opacity = "0";
+          document.body.appendChild(area); area.select();
+          if (!document.execCommand("copy")) throw new Error("copy failed");
+          area.remove();
+        }
+        showToast(success);
+      } catch (_) { showToast("复制失败，请检查浏览器剪贴板权限"); }
+    }
+
+    let toastTimer;
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message; toast.classList.add("show");
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function setTab(name) {
+      const preview = name === "preview";
+      document.getElementById("panel-preview").hidden = !preview;
+      document.getElementById("panel-guide").hidden = preview;
+      document.getElementById("tab-preview").setAttribute("aria-selected", String(preview));
+      document.getElementById("tab-guide").setAttribute("aria-selected", String(!preview));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    renderSurvey();
+    renderGuide();
+    updateProgress();
+
+    document.getElementById("tab-preview").addEventListener("click", () => setTab("preview"));
+    document.getElementById("tab-guide").addEventListener("click", () => setTab("guide"));
+    document.querySelector(".copy-all").addEventListener("click", () => copyText(fullSurveyText(), "完整问卷已复制"));
+    document.getElementById("expand-all").addEventListener("click", () => document.querySelectorAll(".guide-card").forEach(item => item.open = true));
+    document.getElementById("collapse-all").addEventListener("click", () => document.querySelectorAll(".guide-card").forEach(item => item.open = false));
+
+    form.addEventListener("change", event => {
+      if (event.target.matches('input[type="radio"], input[type="checkbox"]')) handleChoice(event.target);
+    });
+    form.addEventListener("input", event => {
+      if (event.target.matches(".other-input")) {
+        otherAnswers[Number(event.target.dataset.questionId)] = event.target.value;
+        return;
+      }
+      if (!event.target.matches("textarea")) return;
+      const id = Number(event.target.name.slice(1));
+      answers[id] = event.target.value;
+      event.target.nextElementSibling.querySelector("span").textContent = event.target.value.length;
+      document.getElementById(`question-${id}`).classList.remove("error");
+      updateProgress();
+    });
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const missing = requiredQuestions.filter(q => {
+        const value = answers[q.id];
+        return Array.isArray(value) ? value.length === 0 : !value || !String(value).trim();
+      });
+      document.querySelectorAll(".question").forEach(item => item.classList.remove("error"));
+      if (missing.length) {
+        missing.forEach(q => document.getElementById(`question-${q.id}`).classList.add("error"));
+        document.getElementById(`question-${missing[0].id}`).scrollIntoView({ behavior: "smooth", block: "start" });
+        showToast(`还有 ${missing.length} 道必答题未完成`);
+        return;
+      }
+      document.getElementById("survey-view").hidden = true;
+      document.getElementById("complete-view").hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    guideList.addEventListener("click", event => {
+      const button = event.target.closest("[data-copy-id]");
+      if (!button) return;
+      event.preventDefault(); event.stopPropagation();
+      const q = survey.questions.find(item => item.id === Number(button.dataset.copyId));
+      copyText(questionText(q), `Q${q.id} 已复制`);
+    });
+
+    document.getElementById("reset-survey").addEventListener("click", () => {
+      Object.keys(answers).forEach(key => delete answers[key]);
+      Object.keys(otherAnswers).forEach(key => delete otherAnswers[key]);
+      form.reset();
+      form.querySelectorAll(".char-count span").forEach(item => item.textContent = "0");
+      form.querySelectorAll(".other-wrap").forEach(item => item.hidden = true);
+      form.querySelectorAll(".question").forEach(item => item.classList.remove("error"));
+      document.getElementById("survey-view").hidden = false;
+      document.getElementById("complete-view").hidden = true;
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  </script>
+</body>
+</html>
